@@ -4,22 +4,31 @@ pipeline {
 		stage('checkout') {
 			steps {
 				echo 'checkout the code from SVN ...'
-				/*svn checkout declarative  
+				/*svn checkout declarative  */
 				checkout([$class: 'SubversionSCM', additionalCredentials: [], excludedCommitMessages: '', excludedRegions: '', excludedRevprop: '', excludedUsers: '', filterChangelog: false, ignoreDirPropChanges: false, includedRegions: '', locations: [[credentialsId: 'a41368f3-3b5b-4831-a724-3b90c96284de', depthOption: 'infinity', ignoreExternalsOption: false, local: '.', remote: 'https://192.168.14.101:18080/svn/Dep-KENOGame/AssistantTools/MMStruct/MMStruct/trunk']], quietOperation: true, workspaceUpdater: [$class: 'UpdateUpdater']]) 
-				*/
+				
 			}
 		}
         stage('Build') { 
             steps {
                 echo 'compile the project with MSBuild'
-				/* MSBuild compiles project */
-				bat 'MSBuild project.unity/MMStruct.sln /t:Rebuild'
-				
+				/* MSBuild compiles project 
+				bat 'nuget restore project.unity/MMStruct.sln && MSBuild project.unity/MMStruct.sln /t:Rebuild '
+				*/
             }
         }
         stage('Test') { 
             steps {
                 echo 'run test of project ...' 
+				/*
+				bat 'MSTest /testcontainer:MMStruct.Tests/bin/Debug/MMStruct.Tests.dll /resultsfile:MMSturct-Test'
+				*/
+			}
+        }
+		stage('CodeCheckBySonar') { 
+            steps {
+                echo 'running code check by sonarqube ...' 
+				
             }
         }
         stage('Deploy') { 
