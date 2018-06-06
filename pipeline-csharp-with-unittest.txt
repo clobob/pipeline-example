@@ -1,0 +1,25 @@
+pipeline {
+    agent Compile_Env_For_Csharp 
+    stages {
+		stage('checkout') {
+			steps {
+				checkout([$class: 'SubversionSCM', additionalCredentials: [], excludedCommitMessages: '', excludedRegions: '', excludedRevprop: '', excludedUsers: '', filterChangelog: false, ignoreDirPropChanges: false, includedRegions: '', locations: [[credentialsId: 'a41368f3-3b5b-4831-a724-3b90c96284de', depthOption: 'infinity', ignoreExternalsOption: false, local: '.', remote: 'https://192.168.14.101:18080/svn/Dep-KENOGame/AssistantTools/MMStruct/MMStruct/trunk']], quietOperation: true, workspaceUpdater: [$class: 'UpdateUpdater']])
+			}
+		}
+        stage('Build') { 
+            steps {
+                // 
+            }
+        }
+        stage('Test') { 
+            steps {
+                // 
+            }
+        }
+        stage('Deploy') { 
+            steps {
+                ehco 'do nothing.' 
+            }
+        }
+    }
+}

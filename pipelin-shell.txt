@@ -1,0 +1,49 @@
+pipeline {
+	agent none
+	
+	stages {
+	
+	stage('Shell') {
+	agent {label 'TEST-BM1-LINUX-CENTOS'}
+		steps
+		{
+		 sh returnStatus: true, script: "ps -ef|grep amon|grep -v grep|awk '{print \$2}'|xargs kill -9"
+		 script
+		 {
+		   def pid = sh returnStdout: true ,script: "ps -ef|grep amon|grep -v grep|awk '{print \$2}'"
+		   pid = pid.trim()
+		   echo "you input pid is ${pid},to do sth"
+		   sh returnStatus: true, script: "kill -9 ${pid}"
+		 }
+
+		}
+	}
+	
+	stage('showVersion'){
+	agent {
+		node {
+			label "TEST-BM1-LINUX-CENTOS"
+		}
+	}
+	steps{
+		ws("/var/lib/jenkins/workspace/mypipeline_CloAvm_Package") {
+			script{
+				def version = sh returnStdout: true ,script: 'ls target/*.war |sed -r "s/(.*)-(.*)-(.*)/\\2/"'
+				//echo "${version}"
+				print version
+				//def ver = version.replace('\n\r','')
+				//echo "${ver}"
+				print version.replace('\r','')
+				//The correct way to delete the addition code.
+				print version.replace('\n','')
+				print version.replace('\r\n','')
+				print version.replace('\n\r','')
+			}
+		}
+	}
+		
+	}	
+	
+	}
+
+}

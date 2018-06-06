@@ -1,0 +1,12 @@
+pipeline {
+	agent none
+	triggers { upstream(upstreamProjects: 'Pub-Pipeline-Template-Input', threshold: hudson.model.Result.SUCCESS) }
+	stages {
+	stage('Input') {
+	agent {label 'TEST-BM1-LINUX-CENTOS'}
+		steps{
+			echo "test to trigger."
+		}
+		}
+	}
+	}

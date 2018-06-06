@@ -1,0 +1,28 @@
+//不可用的案例
+
+pipeline {
+	agent none
+	 
+	stages {
+	stage('Input') {
+	agent {label 'TEST-BM1-LINUX-CENTOS'}
+		steps{
+		script{
+			def server = Artifactory.server("323")
+			def uploadSpec = """{
+							"files": [
+									{
+									"pattern": "target/(*)-(*)-SNAPSHOT.war",
+									"target": "maven-local-stage/cloavm/{2}/{1}-{2}.war",
+									"recursive": "false"
+									}
+								]
+							}"""
+		echo(uploadSpec['files'][0]['target'])
+		}
+
+		}
+	}
+	}
+
+}

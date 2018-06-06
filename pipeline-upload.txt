@@ -1,0 +1,39 @@
+pipeline {
+	agent {
+		node {
+			label "master"
+		}
+	}
+	triggers { upstream(upstreamProjects: 'mypipeline_CloAvm_ArtifactoryPromoteBuild', threshold: hudson.model.Result.SUCCESS) }
+	stages {
+		stage("Artifactory upload stage"){
+			steps{
+				ws("/var/lib/jenkins/workspace/mypipeline_CloAvm_Package") {
+					script{
+						def server = Artifactory.server("323")
+						def uploadSpec = """{
+							"files": [
+									{
+									"pattern": "target/(*)-(*)-SNAPSHOT.war",
+									"target": "maven-local-stage/cloavm/{2}/{1}-{2}.war",
+									"recursive": "false"
+									}
+								]
+							}"""
+						def buildInfo = Artifactory.newBuildInfo()
+						buildInfo.env.capture = true
+						server.upload spec: uploadSpec, buildInfo: buildInfo
+						server.publishBuildInfo buildInfo
+						buildInfo.retention maxBuilds: 10, maxDays: 7, deleteBuildArtifacts: true
+                        print buildInfo.number
+						}
+					}
+			}
+		}	
+	}		
+}
+
+
+
+//						echo("${version}")
+//						build job:'mypipeline_CloAvm_Deploy',parameters: [[$class:'StringParameterValue',name:'VERSION',value:version]]

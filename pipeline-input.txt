@@ -1,0 +1,34 @@
+pipeline {
+	agent none
+	 parameters {string(name: 'VERSION', defaultValue: '1.0.0.0', description: '发布版本?')}
+	stages {
+	stage('Input') {
+	agent {label 'TEST-BM1-LINUX-CENTOS'}
+		steps{
+		script{
+		def x = input message:'Do you want chocolate?', id:'Icecream', ok: 'Purchase icecream', submitterParameter: 'approval'
+		echo("after: ${x}")
+		
+		def y = input message:'Do you want chocolate?', id:'Icecream', ok: 'Purchase icecream', submitterParameter: 'approval', parameters: [string(defaultValue: 'stage', description: '', name: 'derp')]
+		echo("after: " + y['derp'])
+		
+		
+		}
+
+		}
+	}
+	stage('after') {
+		steps{
+			echo "empty operation"
+			echo "${params.VERSION}"
+		}
+	}
+	}
+
+}
+
+	//	def x = input message:'Do you want chocolate?', id:'Icecream', ok: 'Purchase icecream', submitterParameter: 'approval'
+	//	echo("after: ${x}")
+	//	def y = input message:'Do you want chocolate?', id:'Icecream', ok: 'Purchase icecream', submitterParameter: 'approval', parameters: [string(defaultValue: 'herp', description: '', name: 'derp')]
+	//	echo("after: " + y['approval'])
+	//	

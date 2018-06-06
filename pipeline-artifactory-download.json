@@ -1,0 +1,33 @@
+pipeline{
+	agent {label 'DOCKER_149'}
+	stages{
+		stage('Download form artifactory'){
+			steps{
+				sh '''if [ -d deploy ];then
+						echo "deploy dir is existed"
+					else
+						mkdir deploy
+					fi'''
+				script{
+						def server = Artifactory.server("artifactory_douly")
+						def downloadSpec = """{
+							"files": [
+									{
+									"pattern": "maven-local-stage/cloavm/*/avm-*.war",
+									"target": "deploy/",
+                                    "flat":"true"
+									}
+								]
+						}"""
+						def buildInfo = Artifactory.newBuildInfo()
+						buildInfo.env.capture = true
+						server.download spec: downloadSpec, buildInfo: buildInfo
+						server.publishBuildInfo buildInfo
+						buildInfo.retention maxBuilds: 10, maxDays: 7, deleteBuildArtifacts: true
+					}
+				}
+			}
+	}
+}
+
+//     http://172.18.60.116:8080/user/jiaxf/my-views/view/Pipeline_Project/job/mypipeline_CloAvm_Deploy/buildWithParameters?VERSION=${param}
