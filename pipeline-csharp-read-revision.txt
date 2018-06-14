@@ -51,6 +51,7 @@ pipeline {
 				if (fileExists('revision.txt')){
 					def rev = readFile('revision.txt')
 					echo '读取到的内容: '+ rev
+					bat 'echo 读取到的内容: '+rev + ' continue.. .'
 					writeFile file: 'revision.txt', text: ''
 				}
 				}
