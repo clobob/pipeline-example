@@ -45,6 +45,7 @@ pipeline {
 					if (fileExists('revision.txt')){
 						def svn_rev = readFile('revision.txt')
 						echo '读取到版本号'+svn_rev
+//备注： 下面引用变量代码bat '... 放到if包之外，脚本不能运行，报引用异常，未知原因，待解						
 						bat 'cd mms.csharp && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe begin /k:KLC-MMStruct-CS /n:KLC-MMStruct-CS /v:'+svn_rev+' /d:sonar.host.url=http://192.168.3.161:9000 /d:sonar.login=f148418ea15c9806f599f0738ab86a83fa0068a2 && MSBuild.exe ../project.unity/MMStruct.sln /t:Rebuild && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe end /d:sonar.login=f148418ea15c9806f599f0738ab86a83fa0068a2'
 					}
 					
