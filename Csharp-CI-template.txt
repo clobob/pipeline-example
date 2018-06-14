@@ -5,8 +5,10 @@ pipeline {
 			steps {
 				echo 'checkout the code from SVN ...'
 				/*svn checkout declarative  
-				checkout([$class: 'SubversionSCM', additionalCredentials: [], excludedCommitMessages: '', excludedRegions: '', excludedRevprop: '', excludedUsers: '', filterChangelog: false, ignoreDirPropChanges: false, includedRegions: '', locations: [[credentialsId: 'a41368f3-3b5b-4831-a724-3b90c96284de', depthOption: 'infinity', ignoreExternalsOption: false, local: '.', remote: 'https://192.168.14.101:18080/svn/Dep-KENOGame/AssistantTools/MMStruct/MMStruct/branches/1.0']], quietOperation: true, workspaceUpdater: [$class: 'CheckoutUpdater']]) 
-				
+				script {
+				def mainSVN = checkout([$class: 'SubversionSCM', additionalCredentials: [], excludedCommitMessages: '', excludedRegions: '', excludedRevprop: '', excludedUsers: '', filterChangelog: false, ignoreDirPropChanges: false, includedRegions: '', locations: [[credentialsId: 'a41368f3-3b5b-4831-a724-3b90c96284de', depthOption: 'infinity', ignoreExternalsOption: false, local: '.', remote: 'https://192.168.14.101:18080/svn/Dep-KENOGame/AssistantTools/MMStruct/MMStruct/branches/1.0']], quietOperation: true, workspaceUpdater: [$class: 'CheckoutUpdater']]) 
+				writeFile file: 'revision.txt',text: mainSVN["SVN_REVISION"] 
+				}
 				checkout([$class: 'SubversionSCM', additionalCredentials: [], excludedCommitMessages: '', excludedRegions: '', excludedRevprop: '', excludedUsers: '', filterChangelog: false, ignoreDirPropChanges: false, includedRegions: '', locations: [[credentialsId: 'a41368f3-3b5b-4831-a724-3b90c96284de', depthOption: 'infinity', ignoreExternalsOption: false, local: 'libs', remote: 'https://192.168.14.101:18080/svn/Dep-KENOGame/AssistantTools/MMStruct/MMStructLibs/branches/1.0']], quietOperation: true, workspaceUpdater: [$class: 'CheckoutUpdater']])
 				*/
 			}
@@ -14,9 +16,11 @@ pipeline {
         stage('Build') { 
             steps {
                 echo 'compile the project with MSBuild'
-				/* MSBuild compiles project */
-				bat 'nuget restore project.unity/MMStruct.sln && MSBuild project.unity/MMStruct.sln /t:Rebuild '
-				
+				/* MSBuild compiles project 
+				 
+				bat 'MSBuild project.unity/MMStruct.sln /t:Rebuild '
+				*/
+				bat 'nuget restore project.unity/MMStruct.sln
             }
         }
         stage('Test') { 
@@ -35,10 +39,19 @@ pipeline {
 //				def sqScannerMsBuildHome = tool "C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-3.0.2.656"
 // Due to SONARMSBRU-307 value of sonar.host.url and credentials should be passed on command line
 //  /d:sonar.host.url=http://192.168.3.161:9000 /d:sonar.login=a95dd3f2f2f7064910f6f8cd2be5d49b16b603e1
+				
+				script {
 				withSonarQubeEnv('CLOTestTeamSonarAlpha'){
-				bat "cd mms.csharp && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe begin /k:KLC-MMStruct-CS /n:KLC-MMStruct-CS /v:1.0 /d:sonar.host.url=http://192.168.3.161:9000 /d:sonar.login=f148418ea15c9806f599f0738ab86a83fa0068a2 && MSBuild.exe ../project.unity/MMStruct.sln /t:Rebuild && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe end /d:sonar.login=f148418ea15c9806f599f0738ab86a83fa0068a2"
+					if (fileExists('revision.txt')){
+						def svn_rev = readFile('revision.txt')
+						echo '读取到版本号'+svn_rev
+						bat 'cd mms.csharp && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe begin /k:KLC-MMStruct-CS /n:KLC-MMStruct-CS /v:'+svn_rev+' /d:sonar.host.url=http://192.168.3.161:9000 /d:sonar.login=f148418ea15c9806f599f0738ab86a83fa0068a2 && MSBuild.exe ../project.unity/MMStruct.sln /t:Rebuild && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe end /d:sonar.login=f148418ea15c9806f599f0738ab86a83fa0068a2'
+					}
+					
 				}
-				timeout(time: 10, unit: 'MINUTES') {
+				
+				}
+				timeout(time: 1, unit: 'HOURS') {
                     // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
                     // true = set pipeline to UNSTABLE, false = don't
                     // Requires SonarQube Scanner for Jenkins 2.7+
