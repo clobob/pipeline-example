@@ -1,0 +1,60 @@
+pipeline {
+    agent {node { label 'Compile_Env_For_Csharp'} }  
+    stages {
+		stage('checkout') {
+			steps {
+				script {
+				def svnSCM = checkout(
+				[
+					$class: 'SubversionSCM',
+					additionalCredentials: [], 
+					excludedCommitMessages: '', 
+					excludedRegions: '', 
+					excludedRevprop: '', 
+					excludedUsers: '', 
+					filterChangelog: false, 
+					ignoreDirPropChanges: false, 
+					includedRegions: '', 
+					locations: [
+					[
+						credentialsId: 'a41368f3-3b5b-4831-a724-3b90c96284de', 
+						depthOption: 'infinity', 
+						ignoreExternalsOption: false,
+						local: '.', 
+						remote: 'https://192.168.14.101:18080/svn/Dep-KENOGame/AssistantTools/MMStruct/MMStruct/trunk'
+						]
+						], 
+						quietOperation: true,
+						workspaceUpdater: [$class: 'UpdateUpdater']
+						]
+						)
+				writeFile file: 'revision.txt',text: svnSCM["SVN_REVISION"] 
+				echo 'SVN Checkout info: ' + svnSCM
+				}
+				
+			}
+		}
+        stage('Build') { 
+            steps {
+                echo 'do nothing.'  
+            }
+        }
+        stage('Test') { 
+            steps {
+                echo 'do nothing.' 
+            }
+        }
+        stage('Deploy') { 
+            steps {
+                echo '从文件读取版本号'
+				script {
+				if (fileExists('revision.txt')){
+					def rev = readFile('revision.txt')
+					echo '读取到的内容: '+ rev
+					writeFile file: 'revision.txt', text: ''
+				}
+				}
+				}
+        }
+    }
+}
