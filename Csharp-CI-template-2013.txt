@@ -1,0 +1,74 @@
+﻿//辽宁福彩微站点项目Pipeline脚本
+pipeline {
+    agent {node { label 'Node_For_VS-2013'} } 
+    stages {
+		stage('checkout') {
+			steps {
+				echo 'checkout the code from SVN ...'
+				/*svn checkout declarative  */
+				script {
+				def mainSVN = checkout([$class: 'SubversionSCM', additionalCredentials: [], excludedCommitMessages: '', excludedRegions: '', excludedRevprop: '', excludedUsers: '', filterChangelog: false, ignoreDirPropChanges: false, includedRegions: '', locations: [[credentialsId: '700d6285-4aa4-4b9d-a84c-61dafa0275c2', depthOption: 'infinity', ignoreExternalsOption: false, local: '.', remote: 'https://192.168.14.101:18080/svn/InternetAll/1.0/code/trunk/LNMicroSite']], quietOperation: true, workspaceUpdater: [$class: 'CheckoutUpdater']]) 
+				writeFile file: 'revision.txt',text: mainSVN["SVN_REVISION"] 
+				
+				}
+				
+			}
+		}
+        stage('Build') { 
+            steps {
+                echo 'restore depedency packages'
+				
+				/* MSBuild compiles project 
+				bat 'MSBuild project.unity/MMStruct.sln /t:Rebuild '
+				*/				
+				bat 'nuget restore ZFCWXPT.sln'				
+            }
+        }
+        stage('Test') { 
+            steps {
+                echo 'run test of project ...' 
+				/* MSTest 
+				bat 'MSTest /testcontainer:MMStruct.Tests/bin/Debug/MMStruct.Tests.dll /resultsfile:MMSturct-Test.trx'
+				*/
+			}
+        }
+		
+		stage('CodeCheckBySonar') { 
+			
+            steps {
+                echo 'running code check by sonarqube ...' 
+				
+//				def sqScannerMsBuildHome = tool "C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-3.0.2.656"
+// Due to SONARMSBRU-307 value of sonar.host.url and credentials should be passed on command line
+//  /d:sonar.host.url=http://192.168.3.161:9000 /d:sonar.login=a95dd3f2f2f7064910f6f8cd2be5d49b16b603e1
+				
+				script {
+				withSonarQubeEnv('CLOTestTeamSonarAlpha'){
+					if (fileExists('revision.txt')){
+						def svn_rev = readFile('revision.txt')
+						echo '读取到版本号'+svn_rev
+//备注： 下面引用变量代码bat '... 放到if包之外，脚本不能运行，报引用异常，未知原因，待解		
+//  没有找到通过sln文件过滤进行构建操作，先通过csproj方式进行自动构建进行代码扫描				
+						bat 'cd mms.csharp && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe begin /k:KLC-MMStruct-CS /n:KLC-MMStruct-CS /v:'+svn_rev+' /d:sonar.host.url=http://192.168.3.161:9000 /d:sonar.login=f148418ea15c9806f599f0738ab86a83fa0068a2 && MSBuild.exe Plays\\RacePlay\\RacePlay.csproj /t:Rebuild  && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe end /d:sonar.login=f148418ea15c9806f599f0738ab86a83fa0068a2'
+					}
+					
+				}
+				
+				}
+
+				timeout(time: 1, unit: 'HOURS') {
+                    // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+                    // true = set pipeline to UNSTABLE, false = don't
+                    // Requires SonarQube Scanner for Jenkins 2.7+
+                    waitForQualityGate()
+                }
+
+            }
+        }
+        stage('Deploy') { 
+            steps {
+                echo 'no Deploy step.' 
+            }
+        }
+    }
+}
