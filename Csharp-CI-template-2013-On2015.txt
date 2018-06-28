@@ -1,6 +1,6 @@
-﻿//辽宁福彩微站点项目Pipeline脚本
+//辽宁福彩微站点项目Pipeline脚本
 pipeline {
-    agent {node { label 'Node_For_VS-2013'} } 
+    agent {node { label 'Compile_Env_For_Csharp'} } 
     stages {
 		stage('checkout') {
 			steps {
@@ -49,7 +49,7 @@ pipeline {
 						echo '读取到版本号'+svn_rev
 //备注： 下面引用变量代码bat '... 放到if包之外，脚本不能运行，报引用异常，未知原因，待解		
 //  没有找到通过sln文件过滤进行构建操作，先通过csproj方式进行自动构建进行代码扫描				
-						bat 'C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-2.3.2.573\\SonarQube.Scanner.MSBuild.exe begin /k:LNFC-ZFCWXPT /n:LNFC-ZFCWXPT /v:'+svn_rev+' /d:sonar.host.url=http://192.168.3.161:9000 /d:sonar.login=c9271b50815b028902dff009b4dd2d221592bfc6 /d:sonar.language=c# && MSBuild.exe ZFCWXPT.sln /t:Rebuild  && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-2.3.2.573\\SonarQube.Scanner.MSBuild.exe end /d:sonar.login=c9271b50815b028902dff009b4dd2d221592bfc6'
+						bat 'C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe begin /k:LNFC-ZFCWXPT /n:LNFC-ZFCWXPT /v:'+svn_rev+' /d:sonar.host.url=http://192.168.3.161:9000 /d:sonar.login=c9271b50815b028902dff009b4dd2d221592bfc6  && MSBuild.exe ZFCWXPT.sln /t:Rebuild  && C:\\ForJenkins\\Tools\\sonar-scanner-msbuild-4.3.0.1333-net46\\SonarScanner.MSBuild.exe end /d:sonar.login=c9271b50815b028902dff009b4dd2d221592bfc6'
 					}
 					
 				}
